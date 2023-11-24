@@ -2,7 +2,7 @@
 
 #Vars
 HIDE_CTRL_C="Y"
-TOOL_VERSION="0.1a"
+TOOL_VERSION="0.2a"
 FLASHOS_ROOT_BLOCKDEVICE=""
 FLASHOS_WIN_BLOCKDEVICE=""
 FLASHOS_FLASH_TARGET=""
@@ -41,7 +41,7 @@ echo "-- Thank you for using flashOS. --"
 echo
 addLines
 sleep 2
-poweroff -d 5
+poweroff -d 1
 while true
 do
 sleep 5
@@ -159,7 +159,7 @@ function checkWinPartition(){
 if [[ -e "/media/flashOS/" ]];
 then
 	echo "INFO: flashOS-flashtool assets folder found, checking if the Windows partition of flashOS has been mounted..."
-	VAR_CHECK_MOUNT=`mount -t vfat | head -n 1 | awk '{print $1}'`
+	VAR_CHECK_MOUNT=$(mount -t vfat | head -n 1 | awk '{print $1}')
 	if [[ "$VAR_CHECK_MOUNT" == "" ]];
 	then
 		echo "WARN: Unable to find the Windows partition mounted, trying to mount manually..."
@@ -202,7 +202,7 @@ fi
 
 function getflashOSRootBlockDevice(){
 
-FLASHOS_ROOT_BLOCKDEVICE=`lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }'`
+FLASHOS_ROOT_BLOCKDEVICE=$(lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }')
 if [[ "$FLASHOS_ROOT_BLOCKDEVICE" == "" ]];
 then
 	echo "ERR: Could not find flashOS root blockdevice name."
@@ -213,13 +213,13 @@ fi
 }
 
 function getFlashOSWinBlockDevice(){
-FLASHOS_WIN_GET=`lsblk -o NAME,FSTYPE,PARTLABEL -rn`
+FLASHOS_WIN_GET=$(lsblk -o NAME,FSTYPE,PARTLABEL -rn)
 while IFS= read -r line;
 do
-	WIN_DISK_TYPE_GET=`echo $line | awk '{print $2}'`
+	WIN_DISK_TYPE_GET=$(echo $line | awk '{print $2}')
 	if [[ "$WIN_DISK_TYPE_GET" == "vfat" ]];
 	then
-		WIN_DISK_LABEL_GET=`echo $line | awk '{print $3}'`
+		WIN_DISK_LABEL_GET=$(echo $line | awk '{print $3}')
 		if [[ "$WIN_DISK_LABEL_GET" == "foswinpart" ]];
 		then
 			FLASHOS_WIN_BLOCKDEVICE=`echo $line | awk '{print $1}'`
@@ -239,8 +239,8 @@ fi
 function flashImage(){
 #Start flashing procedure
 echo "INFO: Starting flashing procedure..."
-echo "DEBUG: dd if=/media/flashOS/$FLASHOS_FLASH_IMAGE of=/dev/$FLASHOS_FLASH_TARGET bs=32M"
-dd if=/media/flashOS/$FLASHOS_FLASH_IMAGE of=/dev/$FLASHOS_FLASH_TARGET bs=32M
+echo "DEBUG: dd if=/media/flashOS/$FLASHOS_FLASH_IMAGE of=/dev/$FLASHOS_FLASH_TARGET bs=32M status=progress"
+dd if=/media/flashOS/$FLASHOS_FLASH_IMAGE of=/dev/$FLASHOS_FLASH_TARGET bs=32M status=progress
 if [[ $? -eq 0 ]]; then
 echo "INFO: Flashing seems successful."
 else
@@ -254,8 +254,8 @@ fi
 
 function checkTargetSource(){
 echo "INFO: Checking target device..."
-TARGET_DISK_SIZE=`lsblk -bno SIZE /dev/$FLASHOS_FLASH_TARGET | head -1`
-SOURCE_IMAGE_SIZE=`ls -nl /media/flashOS/$FLASHOS_FLASH_IMAGE | awk '{print $5}'`
+TARGET_DISK_SIZE=$(lsblk -bno SIZE /dev/$FLASHOS_FLASH_TARGET | head -1)
+SOURCE_IMAGE_SIZE=$(ls -nl /media/flashOS/$FLASHOS_FLASH_IMAGE | awk '{print $5}')
 
 sleep 0.5
 if [[ "$SOURCE_IMAGE_SIZE" -gt "$TARGET_DISK_SIZE" ]];
